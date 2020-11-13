@@ -1,0 +1,13 @@
+{
+    "parameter1": "parameter1value",
+    "serverList": [
+        {
+            "name": "server1",
+            "role": "web"
+        },
+        {
+            "name": "server2",
+            "role": "database"
+        }
+    ]
+}
