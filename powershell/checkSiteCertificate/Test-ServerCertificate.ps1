@@ -31,9 +31,12 @@ catch [System.Net.WebException]{
 # The ServicePoint object should now contain the Certificate for the site.
 $servicePoint = $request.ServicePoint
 
-# TODO: validate below call: $servicePoint.Certificate is $null on macOS, might be a Mac thing
+# TODO@manjaricode
+# validate below call: $servicePoint.Certificate is $null on macOS, might be a Mac thing
 # $expiryDate = $servicePoint.Certificate.NotAfter()
-# TODO: test line, remove when above line is tested and working
+
+# TODO@manjaricode
+# test line, remove when above line is tested and working
 $expiryDate = (Get-Date -Date "2021-01-01 00:00:00Z")   
 $expired = (Get-Date) -gt $expiryDate
 $expiresInDays =  ($expiryDate - (Get-Date)).days
@@ -45,7 +48,8 @@ $result | Add-Member -MemberType NoteProperty -Name ExpiresInDays -Value $expire
 $result | Add-Member -MemberType NoteProperty -Name Warning -Value $null
 
 if ($expiresInDays -le $WarnDaysBeforeExpiry){
-    # TODO: get certificate CN for warningMessage below
+    # TODO@manjaricode
+    # get certificate CN for warningMessage below
     $warningMessage = "Certirficate (TODO: CN goes here) expires in $expiresInDays"
     $result.Warning = $warningMessage
     Write-Warning $warningMessage
