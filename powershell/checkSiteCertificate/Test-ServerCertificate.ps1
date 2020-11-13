@@ -32,7 +32,7 @@ catch [System.Net.WebException]{
 $servicePoint = $request.ServicePoint
 
 # TODO@manjaricode
-# validate below call: $servicePoint.Certificate is $null on macOS, might be a Mac thing
+# issue #1 $servicePoint.Certificate is $null on macOS, might be a Mac thing
 # $expiryDate = $servicePoint.Certificate.NotAfter()
 
 # TODO@manjaricode
