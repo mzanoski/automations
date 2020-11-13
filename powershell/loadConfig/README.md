@@ -8,6 +8,56 @@ must end with a comma if followed by another variable.  Last variable value must
 
 For more info on JSON schema, see [json-schema.org](https://json-schema.org)
 
+### Get-ConfigFromJson.ps1
+Script loads a JSON file into a PSCustomObject.  
+
+Example config file
+~~~~JSON
+{
+    "parameter1": "parameter1value",
+    "serverList": [
+        {
+            "name": "server1",
+            "role": "web"
+        },
+        {
+            "name": "server2",
+            "role": "database"
+        }
+    ]
+}
+~~~~
+
+Load config file:
+~~~~powershell
+> $conf = ./Get-ConfigFromJson.ps1 -ConfigFilePath ./config.json
+
+# some examples on how $conf is used
+> $conf.parameter1
+parameter1value
+> $conf.serverList
+
+name    role
+----    ----
+server1 web
+server2 database
+
+> $conf.serverList.GetType()
+
+IsPublic IsSerial Name                                     BaseType
+-------- -------- ----                                     --------
+True     True     Object[]                                 System.Array
+
+> $conf.serverList[0]
+
+name    role
+----    ----
+server1 web
+
+> $conf.serverList[0].role
+web
+~~~~
+
 
 ## Using YAML
 Less wordy than JSON and some say easier to read; true for simple structures.  Can get pretty messy if using more complex 
