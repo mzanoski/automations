@@ -10,8 +10,8 @@ A collection of scripts for simple SharePoint CRUD operations on lists and list 
 
 ## Delete-SPList.ps1
 
-# TODO: @manjaricode - create files listed below
-# TODO: @manjaricode - implement files listed below
+_TODO: @manjaricode - create files listed below_<br>
+_TODO: @manjaricode - implement files listed below_
 
 ## New-SPItem.ps1
 
