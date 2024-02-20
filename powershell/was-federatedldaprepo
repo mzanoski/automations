@@ -1,0 +1,42 @@
+# Import the required classes
+from java.util import Properties
+from javax.management import MBeanServerConnection
+from javax.management.remote import JMXConnectorFactory, JMXServiceURL
+
+# Define the connection parameters
+host = 'localhost'  # Replace with your WebSphere server hostname
+port = '8879'       # Replace with your WebSphere server SOAP connector port
+username = 'admin'  # Replace with your WebSphere admin username
+password = 'admin'  # Replace with your WebSphere admin password
+
+# Define the federated LDAP repository parameters
+repositoryName = 'YourLDAPRepository'
+serverName = 'YourServerName'
+type = 'IBM Tivoli Directory Server'  # Change the type based on your LDAP server type
+hostname = 'ldap.example.com'  # Replace with your LDAP server hostname
+port = '389'  # Replace with your LDAP server port
+bindDN = 'cn=admin,dc=example,dc=com'  # Replace with your LDAP bind DN
+bindPassword = 'your_password'  # Replace with your LDAP bind password
+
+# Connect to the WebSphere Admin Console via JMX
+url = JMXServiceURL('service:jmx:iiop://' + host + ':' + port + '/jndi/JMXConnector')
+props = Properties()
+props.put('java.naming.factory.initial', 'com.ibm.websphere.naming.WsnInitialContextFactory')
+props.put('java.naming.provider.url', url)
+props.put('java.naming.security.principal', username)
+props.put('java.naming.security.credentials', password)
+connector = JMXConnectorFactory.connect(url, props)
+connection = connector.getMBeanServerConnection()
+
+# Create a new federated LDAP repository
+repository = AdminConfig.getid('/Cell:DefaultCell01/Security:/')
+if not repository:
+    repository = AdminConfig.create('Security', AdminConfig.getid('/Cell:DefaultCell01/'))
+
+AdminConfig.create('LDAPRepository', repository, [['name', repositoryName], ['server', serverName], ['type', type], ['hostname', hostname], ['port', port], ['bindDN', bindDN], ['bindPassword', bindPassword]])
+
+# Save the changes
+AdminConfig.save()
+
+# Disconnect from the WebSphere Admin Console
+connector.close()
