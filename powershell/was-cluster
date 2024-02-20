@@ -1,0 +1,43 @@
+# Import the required classes
+from java.util import Properties
+from javax.management import MBeanServerConnection
+from javax.management.remote import JMXConnectorFactory, JMXServiceURL
+
+# Define the connection parameters
+host = 'localhost'  # Replace with your WebSphere server hostname
+port = '8879'       # Replace with your WebSphere server SOAP connector port
+username = 'admin'  # Replace with your WebSphere admin username
+password = 'admin'  # Replace with your WebSphere admin password
+
+# Define the cluster parameters
+clusterName = 'YourClusterName'
+memberName = 'YourMemberName'
+nodeName = 'YourNodeName'
+serverName = 'YourServerName'
+weight = 2  # Replace with the desired weight for the cluster member
+
+# Connect to the WebSphere Admin Console via JMX
+url = JMXServiceURL('service:jmx:iiop://' + host + ':' + port + '/jndi/JMXConnector')
+props = Properties()
+props.put('java.naming.factory.initial', 'com.ibm.websphere.naming.WsnInitialContextFactory')
+props.put('java.naming.provider.url', url)
+props.put('java.naming.security.principal', username)
+props.put('java.naming.security.credentials', password)
+connector = JMXConnectorFactory.connect(url, props)
+connection = connector.getMBeanServerConnection()
+
+# Create a new cluster
+cluster = AdminConfig.getid('/ServerCluster:' + clusterName + '/')
+if not cluster:
+    cluster = AdminTask.createCluster('[-clusterName ' + clusterName + ' -memberConfig [-memberNode ' + nodeName + ' -memberName ' + memberName + ' -memberWeight ' + str(weight) + ' -genUniquePorts true -replicatorEntryEnabled false]]')
+
+# Create a new cluster member
+clusterMember = AdminConfig.getid('/ServerCluster:' + clusterName + '/ClusterMember:' + memberName + '/')
+if not clusterMember:
+    clusterMember = AdminTask.createClusterMember(cluster, '[-memberNode ' + nodeName + ' -memberName ' + memberName + ' -memberWeight ' + str(weight) + ' -genUniquePorts true -replicatorEntryEnabled false]')
+
+# Save the changes
+AdminConfig.save()
+
+# Disconnect from the WebSphere Admin Console
+connector.close()
