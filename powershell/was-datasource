@@ -1,0 +1,44 @@
+# Import the required classes
+from java.util import Properties
+from javax.management import MBeanServerConnection
+from javax.management.remote import JMXConnectorFactory, JMXServiceURL
+
+# Define the connection parameters
+host = 'localhost'  # Replace with your WebSphere server hostname
+port = '8879'       # Replace with your WebSphere server SOAP connector port
+username = 'admin'  # Replace with your WebSphere admin username
+password = 'admin'  # Replace with your WebSphere admin password
+
+# Define the cluster and security domain parameters
+clusterName = 'YourClusterName'
+securityDomainName = 'YourSecurityDomainName'
+
+# Connect to the WebSphere Admin Console via JMX
+url = JMXServiceURL('service:jmx:iiop://' + host + ':' + port + '/jndi/JMXConnector')
+props = Properties()
+props.put('java.naming.factory.initial', 'com.ibm.websphere.naming.WsnInitialContextFactory')
+props.put('java.naming.provider.url', url)
+props.put('java.naming.security.principal', username)
+props.put('java.naming.security.credentials', password)
+connector = JMXConnectorFactory.connect(url, props)
+connection = connector.getMBeanServerConnection()
+
+# Get the cluster MBean
+cluster = AdminConfig.getid('/ServerCluster:' + clusterName + '/')
+
+# Get the members of the cluster
+members = AdminConfig.list('ClusterMember', cluster).splitlines()
+
+# Configure security domain for each member
+for member in members:
+    memberName = AdminConfig.showAttribute(member, 'memberName')
+    server = AdminConfig.getid('/Server:' + memberName + '/')
+    
+    # Configure security domain for the server
+    AdminConfig.modify(server, [['security', [['j2eeApplicationSecurity', [['defaultRealm', [['securityDomain', securityDomainName]]]]]]]])
+
+# Save the changes
+AdminConfig.save()
+
+# Disconnect from the WebSphere Admin Console
+connector.close()
