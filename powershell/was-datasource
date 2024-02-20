@@ -9,9 +9,14 @@ port = '8879'       # Replace with your WebSphere server SOAP connector port
 username = 'admin'  # Replace with your WebSphere admin username
 password = 'admin'  # Replace with your WebSphere admin password
 
-# Define the cluster and security domain parameters
-clusterName = 'YourClusterName'
-securityDomainName = 'YourSecurityDomainName'
+# Define the data source parameters
+datasourceName = 'YourDataSourceName'
+jdbcProviderName = 'YourJDBCProviderName'
+implementationType = 'Connection pool data source'
+providerType = 'Oracle JDBC Driver'
+classpath = '/path/to/your/ojdbc.jar'
+url = 'jdbc:oracle:thin:@your_database_host:1521:your_sid'
+description = 'Your data source description'
 
 # Connect to the WebSphere Admin Console via JMX
 url = JMXServiceURL('service:jmx:iiop://' + host + ':' + port + '/jndi/JMXConnector')
@@ -23,22 +28,19 @@ props.put('java.naming.security.credentials', password)
 connector = JMXConnectorFactory.connect(url, props)
 connection = connector.getMBeanServerConnection()
 
-# Get the cluster MBean
-cluster = AdminConfig.getid('/ServerCluster:' + clusterName + '/')
+# Create a new JDBC provider
+jdbcProvider = AdminConfig.getid('/JDBCProvider:' + jdbcProviderName + '/')
+if not jdbcProvider:
+    jdbcProvider = AdminTask.createJDBCProvider('[-scope Node=yourNode,Server=yourServer -databaseType ' + providerType + ' -providerType ' + providerType + ' -implementationType ' + implementationType + ' -name ' + jdbcProviderName + ' -classpath ' + classpath + ' ]')
 
-# Get the members of the cluster
-members = AdminConfig.list('ClusterMember', cluster).splitlines()
-
-# Configure security domain for each member
-for member in members:
-    memberName = AdminConfig.showAttribute(member, 'memberName')
-    server = AdminConfig.getid('/Server:' + memberName + '/')
-    
-    # Configure security domain for the server
-    AdminConfig.modify(server, [['security', [['j2eeApplicationSecurity', [['defaultRealm', [['securityDomain', securityDomainName]]]]]]]])
+# Create a new data source
+dataSource = AdminConfig.getid('/DataSource:' + datasourceName + '/')
+if not dataSource:
+    dataSource = AdminTask.createDatasource(jdbcProvider, '[-name ' + datasourceName + ' -jndiName jdbc/' + datasourceName + ' -description "' + description + '" -dataStoreHelperClassName com.ibm.websphere.rsadapter.Oracle11gDataStoreHelper -containerManagedPersistence true -componentManagedAuthenticationAlias [] -xaRecoveryAuthAlias [] -configureResourceProperties [[URL java.lang.String ' + url + '] [user java.lang.String your_db_username] [password java.lang.String your_db_password]]]')
 
 # Save the changes
 AdminConfig.save()
 
 # Disconnect from the WebSphere Admin Console
 connector.close()
+
