@@ -1,0 +1,37 @@
+# Import the required classes
+from java.util import Properties
+from javax.management import MBeanServerConnection
+from javax.management.remote import JMXConnectorFactory, JMXServiceURL
+
+# Define the connection parameters
+host = 'localhost'  # Replace with your WebSphere server hostname
+port = '8879'       # Replace with your WebSphere server SOAP connector port
+username = 'admin'  # Replace with your WebSphere admin username
+password = 'admin'  # Replace with your WebSphere admin password
+
+# Define the security domain parameters
+securityDomainName = 'YourSecurityDomainName'
+description = 'Your security domain description'
+realmName = 'YourRealmName'
+jaasContext = 'YourJAASContext'
+
+# Connect to the WebSphere Admin Console via JMX
+url = JMXServiceURL('service:jmx:iiop://' + host + ':' + port + '/jndi/JMXConnector')
+props = Properties()
+props.put('java.naming.factory.initial', 'com.ibm.websphere.naming.WsnInitialContextFactory')
+props.put('java.naming.provider.url', url)
+props.put('java.naming.security.principal', username)
+props.put('java.naming.security.credentials', password)
+connector = JMXConnectorFactory.connect(url, props)
+connection = connector.getMBeanServerConnection()
+
+# Create a new security domain
+securityDomain = AdminConfig.getid('/SecurityDomain:' + securityDomainName + '/')
+if not securityDomain:
+    securityDomain = AdminTask.createSecurityDomain('[-securityDomainName ' + securityDomainName + ' -description "' + description + '" -jaasContext ' + jaasContext + ' -realm ' + realmName + ']')
+
+# Save the changes
+AdminConfig.save()
+
+# Disconnect from the WebSphere Admin Console
+connector.close()
